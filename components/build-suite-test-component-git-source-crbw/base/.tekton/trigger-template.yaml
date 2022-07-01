@@ -1,0 +1,53 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  creationTimestamp: null
+  name: build-suite-test-component-git-source-crbw
+  namespace: build-templates-e2e
+spec:
+  params:
+  - name: git-revision
+  resourcetemplates:
+  - apiVersion: tekton.dev/v1beta1
+    kind: PipelineRun
+    metadata:
+      annotations:
+        build.appstudio.openshift.io/application: build-suite-test-application-gmaj
+        build.appstudio.openshift.io/build: "true"
+        build.appstudio.openshift.io/component: build-suite-test-component-git-source-crbw
+        build.appstudio.openshift.io/type: build
+        build.appstudio.openshift.io/version: "0.1"
+        pipelines.appstudio.openshift.io/type: build
+      creationTimestamp: null
+      generateName: build-suite-test-component-git-source-crbw-
+      labels:
+        build.appstudio.openshift.io/application: build-suite-test-application-gmaj
+        build.appstudio.openshift.io/build: "true"
+        build.appstudio.openshift.io/component: build-suite-test-component-git-source-crbw
+        build.appstudio.openshift.io/type: build
+        build.appstudio.openshift.io/version: "0.1"
+        pipelines.appstudio.openshift.io/type: build
+      namespace: build-templates-e2e
+    spec:
+      params:
+      - name: git-url
+        value: https://github.com/redhat-appstudio-qe/devfile-sample-hello-world
+      - name: output-image
+        value: quay.io/redhat-appstudio/test-images:bb688a59414f47d1936369f1f7c81c55-$(tt.params.git-revision)
+      - name: dockerfile
+        value: docker/Dockerfile
+      - name: path-context
+        value: .
+      pipelineRef:
+        bundle: quay.io/redhat-appstudio/pull-request-builds:base-deb2f5a12f4edbdfb49da03f8e5dc20e5eda7595
+        name: docker-build
+      workspaces:
+      - name: workspace
+        persistentVolumeClaim:
+          claimName: appstudio
+        subPath: build-suite-test-component-git-source-crbw/$(tt.params.git-revision)
+      - name: registry-auth
+        secret:
+          secretName: redhat-appstudio-registry-pull-secret
+    status: {}
+status: {}
